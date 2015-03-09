@@ -129,6 +129,11 @@ int main()
 		return 1;
 	}
 
+	// get the width and height of the texture
+	int texWidth  = 0;
+	int texHeight = 0;
+	SDL_QueryTexture(tex, NULL, NULL, &texWidth, &texHeight);
+
 	double posX = 22, posY = 12; //x and y start position
 	double dirX = -1, dirY = 0;  //initial direction vector
 	double planeX = 0, planeY = 0.66; //the 2d raycaster version of camera plane
@@ -139,7 +144,6 @@ int main()
 
 	while (!done()) // START OF GAME LOOP
 	{
-
         for(int x = 0; x < w; x++)
 	    {
 			//calculate ray position and direction
@@ -248,6 +252,7 @@ int main()
 			int drawEnd = lineHeight / 2 + h / 2;
 			if (drawEnd >= h) drawEnd = h - 1;
 
+			/*
 			//choose wall color
 			ColorRGB color;
 			switch(worldMap[mapX][mapY])
@@ -264,8 +269,30 @@ int main()
 
 			//draw the pixels of the stripe as a vertical line
 			//verLine(x, drawStart, drawEnd, color);
+			*/
+
+			//texturing calculations
+			int texNum = worldMap[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
+
+			//calculate value of wallX
+			double wallX; //where exactly the wall was hit
+			if (side == 1)
+				wallX = rayPosX + ((mapY - rayPosY + (1 - stepY) / 2) / rayDirY) * rayDirX;
+			else
+				wallX = rayPosY + ((mapX - rayPosX + (1 - stepX) / 2) / rayDirX) * rayDirY;
 			
-			renderTexture(tex, ren, x, drawStart, 1, drawEnd - drawStart);
+			wallX -= floor((wallX));
+
+			//x coordinate on the texture
+			int texX = int(wallX * double(texWidth));
+			if(side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
+			if(side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
+
+			// set up the rectangle to sample the texture
+			SDL_Rect line = {x, drawStart, 1, drawEnd - drawStart};
+			SDL_Rect sample = {texX, 0, 1, texHeight};
+			
+			renderTexture(tex, ren, line, &sample);
 	    }
 
 	    //timing for input and FPS counter

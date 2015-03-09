@@ -109,19 +109,16 @@ SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren) {
 }
 */
 
-void renderTexture(SDL_Texture* tex, SDL_Renderer* ren, int x, int y, int w, int h) {
-    //set up the destination rectangle to be at the position we want
+void renderTexture(SDL_Texture* tex, SDL_Renderer* ren, SDL_Rect dst, SDL_Rect* clip = nullptr) {
+    // draw the clipped texture to the destination rectangle
+    SDL_RenderCopy(ren, tex, clip, &dst);
+}
+void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, SDL_Rect* clip = nullptr) {
     SDL_Rect dst;
     dst.x = x;
     dst.y = y;
-    dst.w = w;
-    dst.h = h;
-    SDL_RenderCopy(ren, tex, NULL, &dst);
-}
-void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y) {
-    int w, h;
-    SDL_QueryTexture(tex, NULL, NULL, &w, &h);
-    renderTexture(tex, ren, x, y, w, h);
+    SDL_QueryTexture(tex, NULL, NULL, &dst.w, &dst.h);
+    renderTexture(tex, ren, dst, clip);
 }
 
 std::string getProjectPath(const std::string &subDir = ""){
