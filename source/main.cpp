@@ -263,10 +263,10 @@ int main()
 			if (side == 1) {color = color / 2;}
 
 			//draw the pixels of the stripe as a vertical line
-			verLine(x, drawStart, drawEnd, color);
+			//verLine(x, drawStart, drawEnd, color);
+			
+			renderTexture(tex, ren, x, drawStart, 1, drawEnd - drawStart);
 	    }
-
-		renderTexture(tex, ren, 100, 100, 64, 64);
 
 	    //timing for input and FPS counter
 		oldTime = time;
