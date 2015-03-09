@@ -109,8 +109,7 @@ int main()
 	// loading in a texture
 
 	std::string projectPath = getProjectPath();
-	std::string imagePath = projectPath + "img/texture.bmp";
-	SDL_Surface *bmp = SDL_LoadBMP(imagePath.c_str());
+	SDL_Surface *bmp = SDL_LoadBMP((projectPath + "img/texture.bmp").c_str());
 	if (bmp == nullptr){
 		SDL_DestroyRenderer(ren);
 		SDL_DestroyWindow(win);
