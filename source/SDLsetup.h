@@ -2,7 +2,8 @@
 //  SDLsetup.h
 //
 //  Created by Thomas Joseph Hope on 09/09/2014.
-//
+//  with a LOT of help from the tutorials by Will Usher
+//  http://www.willusher.io/pages/sdl2/
 
 #ifndef doomLike_SDLsetup_h
 #define doomLike_SDLsetup_h
