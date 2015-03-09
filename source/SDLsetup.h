@@ -9,7 +9,7 @@
 
 
 #include <SDL2/SDL.h>
-#include <SDL2_image/SDL_image.h>
+//#include <SDL2_image/SDL_image.h>
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
@@ -39,7 +39,7 @@ bool initEverything() {
     
     if ( !initSDL() ) { return false; }
     
-    if ( !initSDL_image() ) { return false; }
+//    if ( !initSDL_image() ) { return false; }
     
     if ( !createWindow() ) { return false; }
     
@@ -58,6 +58,7 @@ bool initSDL() {
     return true;
 }
 
+/*
 bool initSDL_image() {
     //inialise the PNG component of SDL_image
     if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
@@ -66,6 +67,7 @@ bool initSDL_image() {
     }
     return true;
 }
+*/
 
 bool createWindow() {
     win = SDL_CreateWindow("Doom#Like", 100, 100, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -97,6 +99,7 @@ void logSDLError(std::ostream &os, const std::string &msg) {
     os << msg << " error: " << SDL_GetError() << std::endl;
 }
 
+/*
 SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren) {
     SDL_Texture* texture = IMG_LoadTexture(ren, file.c_str());
     if (texture == nullptr) {
@@ -104,6 +107,7 @@ SDL_Texture* loadTexture(const std::string &file, SDL_Renderer *ren) {
     }
     return texture;
 }
+*/
 
 void renderTexture(SDL_Texture* tex, SDL_Renderer* ren, int x, int y, int w, int h) {
     //set up the destination rectangle to be at the position we want
