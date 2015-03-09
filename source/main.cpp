@@ -108,7 +108,8 @@ int main()
 
 	// loading in a texture
 
-	std::string imagePath = "/Users/Cyphre/Documents/Code/texturedRaycaster/img/texture.bmp";
+	std::string projectPath = getProjectPath();
+	std::string imagePath = projectPath + "img/texture.bmp";
 	SDL_Surface *bmp = SDL_LoadBMP(imagePath.c_str());
 	if (bmp == nullptr){
 		SDL_DestroyRenderer(ren);
