@@ -192,29 +192,20 @@ int main()
 
 			//Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
 			if (side == 0)
-			perpWallDist = fabs((mapX - rayPosX + (1 - stepX) / 2) / rayDirX);
+			    perpWallDist = fabs((mapX - rayPosX + (1 - stepX) / 2) / rayDirX);
 			else
-			perpWallDist = fabs((mapY - rayPosY + (1 - stepY) / 2) / rayDirY);
+			    perpWallDist = fabs((mapY - rayPosY + (1 - stepY) / 2) / rayDirY);
 
 			//Calculate height of line to draw on screen
 			int lineHeight = abs(int(h / perpWallDist));
 
-			//calculate lowest and highest pixel to fill in current stripe
-			int drawStart = -lineHeight / 2 + h / 2;
-			if (drawStart < 0) drawStart = 0;
-			int drawEnd = lineHeight / 2 + h / 2;
-			if (drawEnd >= h) drawEnd = h - 1;
-
 			//choose a texture 
 			switch(worldMap[mapX][mapY])
 			{
-				case 1:  tex = wall1;  break;
-				case 2:  tex = wall2;  break;
+				case 0:  tex = wall1;  break;
+				case 1:  tex = wall2;  break;
 				default: tex = test;   break;
 			}
-
-			//texturing calculations
-			int texNum = worldMap[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
 
 			//calculate value of wallX
 			double wallX; //where exactly the wall was hit
@@ -227,8 +218,13 @@ int main()
 
 			//x coordinate on the texture
 			int texX = int(wallX * double(texWidth));
+
 			if(side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
 			if(side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
+
+			//calculate lowest and highest pixel to fill in current stripe
+			int drawStart = -lineHeight / 2 + h / 2;
+			int drawEnd = lineHeight / 2 + h / 2;
 
 			// set up the rectangle to sample the texture
 			SDL_Rect line = {x, drawStart, 1, drawEnd - drawStart};
