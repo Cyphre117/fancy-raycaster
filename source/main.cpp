@@ -253,7 +253,6 @@ int main()
 		double moveSpeed = frameTime * 5.0; //the constant value is in squares/second
 		double rotSpeed = frameTime * 3.0; //the constant value is in radians/second
 
-		readKeys();
 		//move forward if no wall in front of you
 		if (keyDown(SDLK_UP))
 		{
