@@ -35,7 +35,9 @@ using namespace InstantCG;
 
 #define mapWidth 24
 #define mapHeight 24
+
 void print(float num);
+SDL_Texture* loadImage(std::string path);
 
 // tutorial starts here
 
@@ -72,27 +74,14 @@ int main()
 
     screen(640, 480);
 
-	// loading in a texture
+	// loading in the textures
 
-	std::string projectPath = getProjectPath();
-	SDL_Surface *bmp = SDL_LoadBMP((projectPath + "img/texture.bmp").c_str());
-	if (bmp == nullptr){
-		SDL_DestroyRenderer(ren);
-		SDL_DestroyWindow(win);
-		std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
+    SDL_Texture* test = loadImage("img/test.bmp");
+    SDL_Texture* wall1 = loadImage("img/wall1.bmp");
+    SDL_Texture* wall2 = loadImage("img/wall2.bmp");
 
-	SDL_Texture *tex = SDL_CreateTextureFromSurface(ren, bmp);
-	SDL_FreeSurface(bmp);
-	if (tex == nullptr){
-		SDL_DestroyRenderer(ren);
-		SDL_DestroyWindow(win);
-		std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
+    // set the default texture
+    SDL_Texture* tex = test;
 
 	// get the width and height of the texture
 	int texWidth  = 0;
@@ -105,7 +94,6 @@ int main()
 
 	double time = 0;    //time of current frame
 	double oldTime = 0; //time of previous frame
-
 
 	while (!done()) // START OF GAME LOOP
 	{
@@ -217,24 +205,13 @@ int main()
 			int drawEnd = lineHeight / 2 + h / 2;
 			if (drawEnd >= h) drawEnd = h - 1;
 
-			/*
-			//choose wall color
-			ColorRGB color;
+			//choose a texture 
 			switch(worldMap[mapX][mapY])
 			{
-				case 1:  color = RGB_Red;  break; //red
-				case 2:  color = RGB_Green;  break; //green
-				case 3:  color = RGB_Blue;   break; //blue
-				case 4:  color = RGB_White;  break; //white
-				default: color = RGB_Yellow; break; //yellow
+				case 1:  tex = wall1;  break;
+				case 2:  tex = wall2;  break;
+				default: tex = test;   break;
 			}
-
-			//give x and y sides different brightness
-			if (side == 1) {color = color / 2;}
-
-			//draw the pixels of the stripe as a vertical line
-			//verLine(x, drawStart, drawEnd, color);
-			*/
 
 			//texturing calculations
 			int texNum = worldMap[mapX][mapY] - 1; //1 subtracted from it so that texture 0 can be used!
@@ -267,6 +244,10 @@ int main()
 		print(1.0 / frameTime); //FPS counter
 		redraw();
 		cls();
+
+        // draw ground and sky
+        drawRect(0,   0, w, h/2, RGB_Navy);
+        drawRect(0, h/2, w, h  , RGB_Darkgreen);
 
 		//speed modifiers
 		double moveSpeed = frameTime * 5.0; //the constant value is in squares/second
@@ -315,5 +296,23 @@ int main()
 void print(float num)
 {
 	std::cout << num << std::endl;
+}
+
+SDL_Texture* loadImage(std::string path)
+{
+	static std::string projectPath = getProjectPath();
+
+	SDL_Surface *bmp = SDL_LoadBMP((projectPath + path).c_str());
+	if (bmp == nullptr){
+		std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
+	}
+
+	SDL_Texture *tex = SDL_CreateTextureFromSurface(ren, bmp);
+	SDL_FreeSurface(bmp);
+	if (tex == nullptr){
+		std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+	}
+
+    return tex;
 }
 
