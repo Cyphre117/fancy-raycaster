@@ -29,48 +29,13 @@
 
 #include "SDLsetup.h"
 #include "InstantCG.h"
+using namespace InstantCG;
 
 // replacements for quickcg functionality
 
 #define mapWidth 24
 #define mapHeight 24
-
-int w = SCREEN_WIDTH;
-int h = SCREEN_HEIGHT;
-
-struct ColorRGB
-{
-	int r;
-	int g;
-	int b;
-};
-
-ColorRGB operator/(const ColorRGB& color, int a)
-{
-  if(a == 0) return color;
-  ColorRGB c;
-  c.r = color.r / a;
-  c.g = color.g / a;
-  c.b = color.b / a;
-  return c;
-}
-
-ColorRGB RGB_Red    = {255,  0,  0};
-ColorRGB RGB_Green  = {  0,255,  0};
-ColorRGB RGB_Blue   = {  0,  0,255};
-ColorRGB RGB_White  = {255,255,255};
-ColorRGB RGB_Yellow = {255,255,  0};
-
-bool done();
-void redraw();
-void cls();
 void print(float num);
-void verLine(int x, int start, int end, ColorRGB color);
-unsigned long getTicks();
-
-const Uint8* keystate;
-void readKeys();
-bool keyDown(int key);
 
 // tutorial starts here
 
@@ -105,7 +70,7 @@ int worldMap[mapWidth][mapHeight]=
 int main()
 {
 
-	initEverything();
+    screen(640, 480);
 
 	// loading in a texture
 
@@ -347,57 +312,8 @@ int main()
 	return 0;
 }
 
-bool done()
-{
-	static SDL_Event event;
-
-	// poll the event queue
-	while (SDL_PollEvent(&event))
-	{
-		if (event.type == SDL_QUIT) { return true; }
-	}
-	return false;
-}
-
 void print(float num)
 {
 	std::cout << num << std::endl;
 }
 
-void redraw()
-{
-	SDL_RenderPresent(ren);
-}
-
-void cls()
-{
-	SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-    SDL_RenderClear(ren);
-}
-
-void verLine(int x, int start, int end, ColorRGB color)
-{
-	// renderer, red, green, blue, alpha
-	SDL_SetRenderDrawColor(ren, color.r, color.g, color.b, 255);
-
-	SDL_RenderDrawLine(ren, x, start, x, end);
-}
-
-unsigned long getTicks()
-{
-	return SDL_GetTicks();
-}
-
-void readKeys()
-{
-	keystate = SDL_GetKeyboardState(NULL);
-}
-
-bool keyDown(int key)
-{
-	if (key == SDLK_UP) return keystate[SDL_SCANCODE_UP];
-	if (key == SDLK_DOWN) return keystate[SDL_SCANCODE_DOWN];
-	if (key == SDLK_LEFT) return keystate[SDL_SCANCODE_LEFT];
-	if (key == SDLK_RIGHT) return keystate[SDL_SCANCODE_RIGHT];
-	return false;
-}

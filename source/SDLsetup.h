@@ -14,8 +14,8 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
-SDL_Window* win;
-SDL_Renderer* ren;
+//SDL_Window* win;
+//SDL_Renderer* ren;
 
 
 // log an sdl error to the output stream of our choice
@@ -28,6 +28,7 @@ void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y);
 // same deal but with specified width and height
 void renderTexture(SDL_Texture *tex, SDL_Renderer *ren, int x, int y, int w, int h);
 
+/*
 bool initEverything();
 bool initSDL();
 bool initSDL_image();
@@ -81,7 +82,7 @@ void setupRenderer() {
     SDL_RenderSetLogicalSize(ren, SCREEN_WIDTH, SCREEN_HEIGHT);
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
 }
-
+*/
 void logSDLError(std::ostream &os, const std::string &msg) {
     os << msg << " error: " << SDL_GetError() << std::endl;
 }
