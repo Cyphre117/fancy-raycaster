@@ -28,6 +28,7 @@
 #include <SDL2/SDL.h>
 
 #include "SDLsetup.h"
+#include "InstantCG.h"
 
 // replacements for quickcg functionality
 
@@ -371,7 +372,7 @@ void redraw()
 void cls()
 {
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-       SDL_RenderClear(ren);
+    SDL_RenderClear(ren);
 }
 
 void verLine(int x, int start, int end, ColorRGB color)
