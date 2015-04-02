@@ -202,8 +202,8 @@ int main()
 			//choose a texture 
 			switch(worldMap[mapX][mapY])
 			{
-				case 0:  tex = wall1;  break;
-				case 1:  tex = wall2;  break;
+				case 1:  tex = wall1;  break;
+				case 2:  tex = wall2;  break;
 				default: tex = test;   break;
 			}
 
