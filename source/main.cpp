@@ -290,7 +290,7 @@ int main()
 
 void print(float num)
 {
-	std::cout << num << std::endl;
+	//std::cout << num << std::endl;
 }
 
 SDL_Texture* loadImage(std::string path)
