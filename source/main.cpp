@@ -36,10 +36,13 @@ using namespace InstantCG;
 #define mapWidth 24
 #define mapHeight 24
 
+// function prototypes
 void print(float num);
-SDL_Texture* loadImage(std::string path);
+bool processEvents();
 
-// tutorial starts here
+// globals
+SDL_Texture* loadImage(std::string path);
+int mouseXDist; // horizontal distance traveled by the mouse
 
 int worldMap[mapWidth][mapHeight]=
 {
@@ -73,6 +76,7 @@ int main()
 {
 
     screen(640, 480);
+    SDL_SetRelativeMouseMode( SDL_bool(true) ); // lock the cursor to the window
 
 	// loading in the textures
 
@@ -95,7 +99,7 @@ int main()
 	double time = 0;    //time of current frame
 	double oldTime = 0; //time of previous frame
 
-	while (!done()) // START OF GAME LOOP
+	while( !processEvents() ) // START OF GAME LOOP
 	{
         for(int x = 0; x < w; x++)
 	    {
@@ -125,28 +129,6 @@ int main()
 
 			int hit = 0; //was there a wall hit?
 			int side; //was a NS or a EW wall hit?
-
-			//calculate step and initial sideDist
-			if (rayDirX < 0)
-			{
-				stepX = -1;
-				sideDistX = (rayPosX - mapX) * deltaDistX;
-			}
-			else
-			{
-				stepX = 1;
-				sideDistX = (mapX + 1.0 - rayPosX) * deltaDistX;
-			}
-			if (rayDirY < 0)
-			{
-				stepY = -1;
-				sideDistY = (rayPosY - mapY) * deltaDistY;
-			}
-			else
-			{
-				stepY = 1;
-				sideDistY = (mapY + 1.0 - rayPosY) * deltaDistY;
-			}
 
 			//calculate step and initial sideDist
 			if (rayDirX < 0)
@@ -248,21 +230,23 @@ int main()
 		//speed modifiers
 		double moveSpeed = frameTime * 5.0; //the constant value is in squares/second
 		double rotSpeed = frameTime * 3.0; //the constant value is in radians/second
+        if( mouseXDist > 0 ) rotSpeed *= mouseXDist * 0.2;
+        else if( mouseXDist < 0 ) rotSpeed *= mouseXDist * -0.2;
 
 		//move forward if no wall in front of you
-		if (keyDown(SDLK_UP))
+		if (keyDown(SDLK_UP) || keyDown(SDL_SCANCODE_W) )
 		{
 		  if(worldMap[int(posX + dirX * moveSpeed)][int(posY)] == false) posX += dirX * moveSpeed;
 		  if(worldMap[int(posX)][int(posY + dirY * moveSpeed)] == false) posY += dirY * moveSpeed;
 		}
 		//move backwards if no wall behind you
-		if (keyDown(SDLK_DOWN))
+		if (keyDown(SDLK_DOWN) || keyDown(SDL_SCANCODE_S) )
 		{
 		  if(worldMap[int(posX - dirX * moveSpeed)][int(posY)] == false) posX -= dirX * moveSpeed;
 		  if(worldMap[int(posX)][int(posY - dirY * moveSpeed)] == false) posY -= dirY * moveSpeed;
 		}
 		//rotate to the right
-		if (keyDown(SDLK_RIGHT))
+		if (keyDown(SDLK_RIGHT) || keyDown(SDL_SCANCODE_D) || mouseXDist > 0 )
 		{
 		  //both camera direction and camera plane must be rotated
 		  double oldDirX = dirX;
@@ -273,7 +257,7 @@ int main()
 		  planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
 		}
 		//rotate to the left
-		if (keyDown(SDLK_LEFT))
+		if (keyDown(SDLK_LEFT) || keyDown(SDL_SCANCODE_A) || mouseXDist < 0 )
 		{
 		  //both camera direction and camera plane must be rotated
 		  double oldDirX = dirX;
@@ -286,6 +270,24 @@ int main()
 	}
 
 	return 0;
+}
+
+bool processEvents()
+{
+    SDL_Event event;
+    mouseXDist = 0;
+
+    readKeys();
+    while( SDL_PollEvent(&event) )
+    {
+        if( event.type == SDL_QUIT )    return true;
+        if( keyDown(SDLK_ESCAPE) )      return true;
+        if( event.type == SDL_MOUSEMOTION )
+        {
+            mouseXDist += event.motion.xrel;
+        }
+    }
+    return false;
 }
 
 void print(float num)
