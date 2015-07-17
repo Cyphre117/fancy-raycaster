@@ -50,15 +50,12 @@ SDL_Renderer* ren; //The renderer
 const Uint8* inkeys;
 SDL_Event event = {0};
 
+SDL_Texture* scr; // used in drawBuffer()
+
 ////////////////////////////////////////////////////////////////////////////////
 //KEYBOARD FUNCTIONS////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-//Gives value of pressed keys to inkeys
-void readKeys()
-{
-    inkeys = SDL_GetKeyboardState(NULL);
-}
 
 // visit https://wiki.libsdl.org/CategoryKeyboard for description of scancodes vs keycodes
 
@@ -80,20 +77,31 @@ bool keyDown(SDL_Scancode key)
 
 //The screen function: sets up the window for 32-bit color graphics.
 //Creates a graphical screen of width*height pixels in 32-bit color.
-//Set fullscreen to 0 for a window, or to 1 for fullscreen output
+//Set fullscreen to false for a window, or to true for fullscreen output
 //text is the caption or title of the window
-//also inits SDL
+//also inits SDL therefore you MUST call screen before any other InstantCG or SDL functions
 void screen(int width, int height, bool fullscreen, const std::string& text)
 {
 	w = width;
 	h = height;
 
+  if ( !fullscreen ) {
+    win = SDL_CreateWindow(text.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_SHOWN);
+  } else {
+    win = SDL_CreateWindow(text.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
+  }
+  if (win == NULL) { std::cout << "Window error: " << SDL_GetError() << std::endl; SDL_Quit(); std::exit(1);}
 
-	// TODO: add fullscreen option
-	// TODO: add error handeling
-	SDL_Init(SDL_INIT_EVERYTHING);
-	win = SDL_CreateWindow(text.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_SHOWN);
 	ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  if (ren == NULL) { std::cout << "Renderer error: " << SDL_GetError() << std::endl; SDL_Quit(); std::exit(1); }
+
+  if (fullscreen) {
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
+    if (SDL_RenderSetLogicalSize(ren, w, h) != 0)
+      std::cout << "logical size error " << SDL_GetError() << std::endl;
+  }
+
+  scr = SDL_CreateTexture(ren, SDL_GetWindowPixelFormat(win), 0, w, h);
 }
 void redraw()
 {
@@ -106,14 +114,89 @@ void cls(const ColorRGB& color)
     SDL_RenderClear(ren);
 }
 
+void pset(int x, int y, const ColorRGB& color)
+{
+  SDL_SetRenderDrawColor(ren, color.r, color.g, color.b, 255);
+  SDL_RenderDrawPoint(ren, x, y);
+}
+
+ColorRGB pget(int x, int y)
+{
+  SDL_Rect point = {x, y, 1, 1};
+  Uint32 data;
+  SDL_RenderReadPixels(ren, &point, SDL_GetWindowPixelFormat(win), &data, 4);
+
+  return ColorRGB( INTtoRGB(data) );
+}
+
 bool onScreen(int x, int y)
 {
     return (x >= 0 && y >= 0 && x < w && y < h);
 }
 
+//Draws a buffer of pixels to the screen
+//The number of elements in the buffer must equal the number of pixels on screen (width * height)
+void drawBuffer(Uint32* buffer, bool swapXY)
+{
+    if( swapXY )
+    {
+        // copy the entire buffer straight into the texture
+        SDL_UpdateTexture(scr, NULL, buffer, w * sizeof(Uint32));
+    }
+    else
+    {
+        for( int x = 0; x < w; ++x )
+        {
+            // the verticle line to be update on the target texture
+            SDL_Rect vStripe;
+            vStripe.x = x;
+            vStripe.y = 0;
+            vStripe.w = 1;
+            vStripe.h = h;
+
+            // things get a bit tricksy here, i'm telling sdl the buffer is only 1 pixel wide
+            SDL_UpdateTexture(scr, &vStripe, buffer, sizeof(Uint32));
+            // then incrementing the buffer pointer to the next line of the beffer i.e. the next vStripe in the texture 
+            buffer += h;
+        }
+    }
+    // draw the entire texture to the screen
+    SDL_RenderCopy(ren, scr, NULL, NULL);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //NON GRAPHICAL FUNCTIONS///////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+// pauses the program until you press a key
+void sleep()
+{
+  bool done = false;
+  while(done == false)
+  {
+    while(SDL_PollEvent(&event))
+    {
+      if (event.type == SDL_QUIT) end();
+      if (event.type == SDL_KEYDOWN) done = true;
+    }
+    SDL_Delay(5);
+  }
+}
+
+// spins untill frameDuration has passed
+void waitFrame(double oldTime, double frameDuration) //in seconds
+{
+  float time = getTime();
+  while(time - oldTime < frameDuration)
+  {
+    time = getTime();
+    SDL_PollEvent(&event);
+    if(event.type == SDL_QUIT) end();
+    readKeys();
+    if(inkeys[SDL_SCANCODE_ESCAPE]) end();
+    SDL_Delay(5); //so it consumes less processing power
+  }
+}
 
 //Returns 1 if you close the window or press the escape key. Also handles everything thats needed per frame.
 bool done(bool quit_if_esc, bool delay)
@@ -138,6 +221,24 @@ void end()
 	std::exit(1);
 }
 
+//Gives value of pressed keys to inkeys
+void readKeys()
+{
+    inkeys = SDL_GetKeyboardState(NULL);
+}
+
+void getMouseState(int& mouseX, int& mouseY)
+{
+  SDL_GetMouseState(&mouseX, &mouseY);
+}
+
+void getMouseState(int& mouseX, int& mouseY, bool& LMB, bool& RMB)
+{
+    Uint32 buttonState = SDL_GetMouseState(&mouseX, &mouseY);
+    LMB = buttonState & SDL_BUTTON(SDL_BUTTON_LEFT);
+    RMB = buttonState & SDL_BUTTON(SDL_BUTTON_RIGHT);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //2D SHAPES/////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -159,10 +260,77 @@ void drawLine(int x1, int y1, int x2, int y2, const ColorRGB& color)
 	SDL_SetRenderDrawColor(ren, color.r, color.g, color.b, 255);
 	SDL_RenderDrawLine(ren, x1, y1, x2, y2); 
 }
+bool drawCircle(int xc, int yc, int radius, const ColorRGB& color)
+{
+    if(xc - radius < 0 || xc + radius >= w || yc - radius < 0 || yc + radius >= h) return 0;
+    int x = 0;
+    int y = radius;
+    int p = 3 - (radius << 1);
+    int a, b, c, d, e, f, g, h;
+    SDL_SetRenderDrawColor(ren, color.r, color.g, color.b, 255);
+    while (x <= y)
+    {
+        a = xc + x; //8 pixels can be calculated at once thanks to the symmetry
+        b = yc + y;
+        c = xc - x;
+        d = yc - y;
+        e = xc + y;
+        f = yc + x;
+        g = xc - y;
+        h = yc - x;
+        SDL_RenderDrawPoint( ren, a, b);
+        SDL_RenderDrawPoint( ren, c, d);
+        SDL_RenderDrawPoint( ren, e, f);
+        SDL_RenderDrawPoint( ren, g, f);
+        if(x > 0) //avoid drawing pixels at same position as the other ones
+        {
+            SDL_RenderDrawPoint(ren, a, d);
+            SDL_RenderDrawPoint(ren, c, b);
+            SDL_RenderDrawPoint(ren, e, h);
+            SDL_RenderDrawPoint(ren, g, h);
+        }
+     if(p < 0) p += (x++ << 2) + 6;
+     else p += ((x++ - y--) << 2) + 10;
+  }
+  
+  return 1;
+}
+bool drawDisk(int xc, int yc, int radius, const ColorRGB& color)
+{
+if(xc + radius < 0 || xc - radius >= w || yc + radius < 0 || yc - radius >= h) return 0; //every single pixel outside screen, so don't waste time on it
+    int x = 0;
+    int y = radius;
+    int p = 3 - (radius << 1);
+    int a, b, c, d, e, f, g, h;
+    int pb = yc + radius + 1, pd = yc + radius + 1; //previous values: to avoid drawing horizontal lines multiple times  (ensure initial value is outside the range)
+    SDL_SetRenderDrawColor(ren, color.r, color.g, color.b, 255);
+    while (x <= y)
+    {
+        // write data
+        a = xc + x;
+        b = yc + y;
+        c = xc - x;
+        d = yc - y;
+        e = xc + y;
+        f = yc + x;
+        g = xc - y;
+        h = yc - x;
+        if(b != pb) SDL_RenderDrawLine(ren, a, b, c, b);
+        if(d != pd) SDL_RenderDrawLine(ren, a, d, c, d);
+        if(f != b)  SDL_RenderDrawLine(ren, e, f, g, f);
+        if(h != d && h != f) SDL_RenderDrawLine(ren, e, h, g, h);
+        pb = b;
+        pd = d;
+        if(p < 0) p += (x++ << 2) + 6;
+        else p += ((x++ - y--) << 2) + 10;
+    }
+  
+  return 1;
+}
 void drawRect(int x1, int y1, int x2, int y2, const ColorRGB& color)
 {
 	SDL_SetRenderDrawColor(ren, color.r, color.g, color.b, 255);
-    SDL_Rect r = {x1, y1, x2, y2};
+    SDL_Rect r = {x1, y1, x2-x1, y2-y1};
     SDL_RenderFillRect(ren, &r);
 }
 

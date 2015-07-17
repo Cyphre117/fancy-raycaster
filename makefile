@@ -1,10 +1,9 @@
-
 CC=g++
 CFLAGS=-c
-LFLAGS=-framework SDL2
+LFLAGS=-lSDL2
 FLAGS= $(CFLAGS) $(LFLAGS)
-SRC=source/
-BUILD=build/
+SRC=./source/
+BUILD=./build/
 OBJECTS= $(BUILD)main.o $(BUILD)instantcg.o
 
 # compile and link the whole project
